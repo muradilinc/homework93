@@ -38,17 +38,17 @@ export class AlbumController {
 
   @Post()
   @UseInterceptors(
-    FileInterceptor('image', {dest: './public/uploads/albums'})
+    FileInterceptor('image', {dest: './public/uploads/artists'})
   )
   create(
     @UploadedFile() file: Express.Multer.File,
-    @Body() albumData: CreateAlbumDto
+    @Body() albumData: CreateAlbumDto,
   ) {
       const album = new this.albumModel({
         author: albumData.author,
         title: albumData.title,
         release: albumData.release,
-        image: file ? '/upload/albums/' + file.filename : null,
+        image: file ? '/upload/artists/' + file.filename : null,
       });
       return album.save();
   }
