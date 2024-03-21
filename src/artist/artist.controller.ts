@@ -33,7 +33,7 @@ export class ArtistController {
     const artist = new this.artistModel({
       name: artistDto.name,
       description: artistDto.description,
-      picture: file ? '/upload/albums/' + file.filename : null,
+      picture: file ? '/uploads/albums/' + file.filename : null,
     });
     return artist.save();
   }

@@ -48,7 +48,7 @@ export class AlbumController {
         author: albumData.author,
         title: albumData.title,
         release: albumData.release,
-        image: file ? '/upload/artists/' + file.filename : null,
+        image: file ? '/uploads/artists/' + file.filename : null,
       });
       return album.save();
   }
