@@ -11,10 +11,14 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Error, Model } from 'mongoose';
 import { Album, AlbumDocument } from '../schemas/album.schema';
 import { CreateAlbumDto } from './create-album.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import express from 'express';
+import { extname } from 'path';
+import { randomUUID } from 'crypto';
 
 @Controller('albums')
 export class AlbumController {
@@ -25,7 +29,19 @@ export class AlbumController {
 
   @Post()
   @UseInterceptors(
-    FileInterceptor('image', { dest: './public/uploads/artists' }),
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './public/uploads/albums',
+        filename(
+          _req: express.Request,
+          file: Express.Multer.File,
+          callback: (error: Error | null, filename: string) => void,
+        ) {
+          const filename = randomUUID();
+          callback(null, filename + '' + extname(file.originalname));
+        },
+      }),
+    }),
   )
   create(
     @UploadedFile() file: Express.Multer.File,
@@ -35,7 +51,7 @@ export class AlbumController {
       author: albumData.author,
       title: albumData.title,
       release: albumData.release,
-      image: file ? '/uploads/artists/' + file.filename : null,
+      image: file ? '/uploads/albums/' + file.filename : null,
     });
     return album.save();
   }
