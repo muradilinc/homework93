@@ -1,8 +1,8 @@
-import {Prop, Schema, SchemaFactory} from "@nestjs/mongoose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema()
 export class Artist {
-  @Prop({required: true})
+  @Prop({ required: true })
   name: string;
   @Prop()
   description: string;

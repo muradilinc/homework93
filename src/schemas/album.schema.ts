@@ -1,16 +1,16 @@
-import {InjectModel, Prop, Schema, SchemaFactory} from "@nestjs/mongoose";
-import {Artist} from "./artist.schema";
-import mongoose, {Model} from "mongoose";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Artist } from './artist.schema';
+import mongoose from 'mongoose';
 
 @Schema()
 export class Album {
-  @Prop({ref: Artist.name, required: true})
+  @Prop({ ref: Artist.name, required: true })
   author: mongoose.Schema.Types.ObjectId;
 
-  @Prop({required: true})
+  @Prop({ required: true })
   title: string;
 
-  @Prop({required: true})
+  @Prop({ required: true })
   release: number;
 }
 
