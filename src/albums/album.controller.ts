@@ -7,11 +7,14 @@ import {
   Param,
   Post,
   Query,
+  SetMetadata,
+  UnprocessableEntityException,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Error, Model } from 'mongoose';
+import mongoose, { Error, Model } from 'mongoose';
 import { Album, AlbumDocument } from '../schemas/album.schema';
 import { CreateAlbumDto } from './create-album.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -19,6 +22,8 @@ import { diskStorage } from 'multer';
 import express from 'express';
 import { extname } from 'path';
 import { randomUUID } from 'crypto';
+import { AuthGuard } from '@nestjs/passport';
+import { PermitAuthGuard } from '../auth/permit-auth.guard';
 
 @Controller('albums')
 export class AlbumController {
@@ -43,17 +48,25 @@ export class AlbumController {
       }),
     }),
   )
-  create(
+  async create(
     @UploadedFile() file: Express.Multer.File,
     @Body() albumData: CreateAlbumDto,
   ) {
-    const album = new this.albumModel({
-      author: albumData.author,
-      title: albumData.title,
-      release: albumData.release,
-      image: file ? '/uploads/albums/' + file.filename : null,
-    });
-    return album.save();
+    try {
+      const album = new this.albumModel({
+        author: albumData.author,
+        title: albumData.title,
+        release: albumData.release,
+        image: file ? '/uploads/albums/' + file.filename : null,
+      });
+      return await album.save();
+    } catch (error) {
+      // if (error instanceof mongoose.Error.ValidationError) {
+      //   throw new UnprocessableEntityException(error);
+      // }
+
+      throw error;
+    }
   }
 
   @Get()
@@ -74,6 +87,8 @@ export class AlbumController {
     return album;
   }
 
+  @UseGuards(AuthGuard, PermitAuthGuard)
+  @SetMetadata('roles', 'admin')
   @Delete(':id')
   async deleteAlbum(@Param('id') id: string) {
     return this.albumModel.findByIdAndDelete(id);

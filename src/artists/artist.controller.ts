@@ -5,10 +5,13 @@ import {
   Get,
   Param,
   Post,
+  SetMetadata,
+  UnprocessableEntityException,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { Error, Model } from 'mongoose';
+import mongoose, { Error, Model } from 'mongoose';
 import { Artist, ArtistDocument } from '../schemas/artist.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateArtistDto } from './create-artist.dto';
@@ -17,6 +20,8 @@ import { diskStorage } from 'multer';
 import express from 'express';
 import { extname } from 'path';
 import { randomUUID } from 'crypto';
+import { AuthGuard } from '@nestjs/passport';
+import { PermitAuthGuard } from '../auth/permit-auth.guard';
 
 @Controller('artists')
 export class ArtistController {
@@ -26,6 +31,7 @@ export class ArtistController {
   ) {}
 
   @Post()
+  @UseGuards(AuthGuard)
   @UseInterceptors(
     FileInterceptor('picture', {
       storage: diskStorage({
@@ -45,12 +51,20 @@ export class ArtistController {
     @UploadedFile() file: Express.Multer.File,
     @Body() artistDto: CreateArtistDto,
   ) {
-    const artist = new this.artistModel({
-      name: artistDto.name,
-      description: artistDto.description,
-      picture: file ? '/uploads/artists/' + file.filename : null,
-    });
-    return artist.save();
+    try {
+      const artist = new this.artistModel({
+        name: artistDto.name,
+        description: artistDto.description,
+        picture: file ? '/uploads/artists/' + file.filename : null,
+      });
+      return await artist.save();
+    } catch (error) {
+      if (error instanceof mongoose.Error.ValidationError) {
+        throw new UnprocessableEntityException(error);
+      }
+
+      throw error;
+    }
   }
 
   @Get()
@@ -63,6 +77,8 @@ export class ArtistController {
     return this.artistModel.findById(id);
   }
 
+  @UseGuards(AuthGuard, PermitAuthGuard)
+  @SetMetadata('roles', 'admin')
   @Delete(':id')
   async deleteArtist(@Param('id') id: string) {
     return this.artistModel.findByIdAndDelete(id);

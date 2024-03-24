@@ -6,11 +6,16 @@ import {
   Param,
   Post,
   Query,
+  SetMetadata,
+  UnprocessableEntityException,
+  UseGuards,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Track, TrackDocument } from '../schemas/tracks.schema';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateTrackDto } from './create-track.dto';
+import { TokenAuthGuard } from '../auth/token-auth.guard';
+import { PermitAuthGuard } from '../auth/permit-auth.guard';
 
 @Controller('tracks')
 export class TracksController {
@@ -20,13 +25,21 @@ export class TracksController {
   ) {}
 
   @Post()
-  create(@Body() trackData: CreateTrackDto) {
-    const track = new this.trackModel({
-      title: trackData.title,
-      album: trackData.album,
-      duration: trackData.duration,
-    });
-    return track.save();
+  async create(@Body() trackData: CreateTrackDto) {
+    try {
+      const track = new this.trackModel({
+        title: trackData.title,
+        album: trackData.album,
+        duration: trackData.duration,
+      });
+      return await track.save();
+    } catch (error) {
+      if (error instanceof mongoose.Error.ValidationError) {
+        throw new UnprocessableEntityException(error);
+      }
+
+      throw error;
+    }
   }
 
   @Get()
@@ -38,6 +51,8 @@ export class TracksController {
     }
   }
 
+  @UseGuards(TokenAuthGuard, PermitAuthGuard)
+  @SetMetadata('roles', ['admin'] as string[])
   @Delete(':id')
   async deleteTrack(@Param('id') id: string) {
     return this.trackModel.findByIdAndDelete(id);
