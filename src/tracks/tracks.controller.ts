@@ -25,6 +25,7 @@ export class TracksController {
   ) {}
 
   @Post()
+  @UseGuards(TokenAuthGuard)
   async create(@Body() trackData: CreateTrackDto) {
     try {
       const track = new this.trackModel({
@@ -51,9 +52,9 @@ export class TracksController {
     }
   }
 
-  @UseGuards(TokenAuthGuard, PermitAuthGuard)
-  @SetMetadata('roles', ['admin'] as string[])
   @Delete(':id')
+  @UseGuards(TokenAuthGuard, PermitAuthGuard)
+  @SetMetadata('roles', 'admin')
   async deleteTrack(@Param('id') id: string) {
     return this.trackModel.findByIdAndDelete(id);
   }

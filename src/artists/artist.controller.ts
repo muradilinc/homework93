@@ -2,10 +2,12 @@ import {
   Body,
   Controller,
   Delete,
+  // Delete,
   Get,
   Param,
   Post,
   SetMetadata,
+  // SetMetadata,
   UnprocessableEntityException,
   UploadedFile,
   UseGuards,
@@ -21,7 +23,9 @@ import express from 'express';
 import { extname } from 'path';
 import { randomUUID } from 'crypto';
 import { AuthGuard } from '@nestjs/passport';
+import { TokenAuthGuard } from '../auth/token-auth.guard';
 import { PermitAuthGuard } from '../auth/permit-auth.guard';
+// import { PermitAuthGuard } from '../auth/permit-auth.guard';
 
 @Controller('artists')
 export class ArtistController {
@@ -31,7 +35,7 @@ export class ArtistController {
   ) {}
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(TokenAuthGuard)
   @UseInterceptors(
     FileInterceptor('picture', {
       storage: diskStorage({
@@ -77,9 +81,9 @@ export class ArtistController {
     return this.artistModel.findById(id);
   }
 
-  @UseGuards(AuthGuard, PermitAuthGuard)
-  @SetMetadata('roles', 'admin')
   @Delete(':id')
+  @UseGuards(TokenAuthGuard, PermitAuthGuard)
+  @SetMetadata('roles', 'admin')
   async deleteArtist(@Param('id') id: string) {
     return this.artistModel.findByIdAndDelete(id);
   }

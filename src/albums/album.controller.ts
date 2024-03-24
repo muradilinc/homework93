@@ -22,7 +22,7 @@ import { diskStorage } from 'multer';
 import express from 'express';
 import { extname } from 'path';
 import { randomUUID } from 'crypto';
-import { AuthGuard } from '@nestjs/passport';
+import { TokenAuthGuard } from '../auth/token-auth.guard';
 import { PermitAuthGuard } from '../auth/permit-auth.guard';
 
 @Controller('albums')
@@ -33,6 +33,7 @@ export class AlbumController {
   ) {}
 
   @Post()
+  @UseGuards(TokenAuthGuard)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
@@ -61,9 +62,9 @@ export class AlbumController {
       });
       return await album.save();
     } catch (error) {
-      // if (error instanceof mongoose.Error.ValidationError) {
-      //   throw new UnprocessableEntityException(error);
-      // }
+      if (error instanceof mongoose.Error.ValidationError) {
+        throw new UnprocessableEntityException(error);
+      }
 
       throw error;
     }
@@ -87,9 +88,9 @@ export class AlbumController {
     return album;
   }
 
-  @UseGuards(AuthGuard, PermitAuthGuard)
-  @SetMetadata('roles', 'admin')
   @Delete(':id')
+  @UseGuards(TokenAuthGuard, PermitAuthGuard)
+  @SetMetadata('roles', 'admin')
   async deleteAlbum(@Param('id') id: string) {
     return this.albumModel.findByIdAndDelete(id);
   }

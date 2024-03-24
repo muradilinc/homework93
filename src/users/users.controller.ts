@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Post,
   Req,
   UnprocessableEntityException,
@@ -12,6 +13,7 @@ import mongoose, { Model } from 'mongoose';
 import { CreateUserDto } from './create-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
+import { TokenAuthGuard } from '../auth/token-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -44,5 +46,16 @@ export class UsersController {
   @Post('sessions')
   async login(@Req() req: Request) {
     return { message: 'Correct', user: req.user };
+  }
+
+  @Delete('sessions')
+  @UseGuards(TokenAuthGuard)
+  async logout(@Req() req: Request) {
+    const user = req.user as UserDocument;
+    console.log(this.userModel);
+    console.log(user);
+    user.generateToken();
+    await user.save();
+    return { message: 'Success!', stage: 'Success', user };
   }
 }
