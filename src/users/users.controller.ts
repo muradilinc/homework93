@@ -50,8 +50,8 @@ export class UsersController {
 
   @Delete('sessions')
   @UseGuards(TokenAuthGuard)
-  async logout(@Req() req: Request & UserDocument) {
-    const user = req.user;
+  async logout(@Req() req: Request) {
+    const user = req.user as UserDocument;
     user.generateToken();
     await user.save();
     return { message: 'Success!', stage: 'Success', user };
