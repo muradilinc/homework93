@@ -75,14 +75,14 @@ export class ArtistController {
   }
 
   @Get(':id')
-  async getOne(@Param('id') id: string) {
+  getOne(@Param('id') id: string) {
     return this.artistModel.findById(id);
   }
 
   @Delete(':id')
   @UseGuards(TokenAuthGuard, PermitAuthGuard)
   @SetMetadata('roles', 'admin')
-  async deleteArtist(@Param('id') id: string) {
+  deleteArtist(@Param('id') id: string) {
     return this.artistModel.findByIdAndDelete(id);
   }
 }

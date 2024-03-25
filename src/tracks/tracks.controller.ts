@@ -55,7 +55,7 @@ export class TracksController {
   @Delete(':id')
   @UseGuards(TokenAuthGuard, PermitAuthGuard)
   @SetMetadata('roles', 'admin')
-  async deleteTrack(@Param('id') id: string) {
+  deleteTrack(@Param('id') id: string) {
     return this.trackModel.findByIdAndDelete(id);
   }
 }

@@ -91,7 +91,7 @@ export class AlbumController {
   @Delete(':id')
   @UseGuards(TokenAuthGuard, PermitAuthGuard)
   @SetMetadata('roles', 'admin')
-  async deleteAlbum(@Param('id') id: string) {
+  deleteAlbum(@Param('id') id: string) {
     return this.albumModel.findByIdAndDelete(id);
   }
 }
